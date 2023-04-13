@@ -2,7 +2,7 @@ best <- function(state, outcome) {
   ## Read outcome data
     hospData<-read.csv("outcome-of-care-measures.csv", head=TRUE)
     presentStates<-unique(hospData$State) ##vectore with state abbr from data frame
-    allowedOutcomes<-c("heart attack", "heart failure", "Pneumonia") #valid outcomes
+    allowedOutcomes<-c("heart attack", "heart failure", "pneumonia") #valid outcomes
     ## Check that state and outcome are valid
     if(is.element(state, presentStates)==FALSE){
       stop("invalid state")
@@ -22,24 +22,33 @@ best <- function(state, outcome) {
        outcomeCol<-  17
       }
          else{
-         outcomeCol<- 23
+         if (outcome == "pneumonia")
+           outcomeCol<- 23
          }
      }
      
-     hospNamesForOutcome<-hospData[c(hospData$Hospital.Name,hospData$State,outcomeCol)]
-    hospWithOutcome<-c() ##empty vector
+     hospNamesForOutcome<-hospData[c(2,7,outcomeCol)]
+   
+     hName<-c()
+     hMR<-c()
+     hospWithOutcome<-data.frame(hsname=hName,mrate=hMR) ##empty data frame
 
          ##process subset by extracting hospitals in the input state that has outcome data
-     for(index in nrow(hospData)){
-       if(hospNamesForOutcome[index,2]==state && 
-          hospNamesForOutcome[index,3]!="Not Available"){
-         rbind(hospWithOutcome,c(hospNamesForOutcome[index,1],hospNamesForOutcome[index,3]))
+   
+     for(index in 1:nrow(hospData)){
+       if((hospNamesForOutcome[index,2]==state) && 
+          (hospNamesForOutcome[index,3]!='Not Available')){
+           
+         hospWithOutcome<- rbind(hospWithOutcome, data.frame(hsname=hospNamesForOutcome[index,1]
+                                  ,mrate=as.numeric(hospNamesForOutcome[index,3])))
+         
        }
-       else{
-         next()
-     }
-     }
+      }
      
   ## Return hospital name in that state with lowest 30-day death
+    ##sort first by mortality rate, then by hospital name
+    hospWithOutcome<-hospWithOutcome[order(hospWithOutcome$mrate, 
+                                          hospWithOutcome$hsname),]
+    hospWithOutcome[1,]
   ## rate
 }
